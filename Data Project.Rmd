@@ -1,0 +1,328 @@
+---
+title: "Data Project"
+author: "Nigel Barreras"
+date: "2025-03-31"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(dplyr)
+library(countrycode)
+library(ggplot2)
+```
+
+
+```{r Archery athlete and biography merge, include=FALSE}
+#Given Data set manipulation:
+data <- read.csv("Athletes_summer_games.csv")
+
+# all archery athletes
+dataArchery <- data[data["Sport"] == "Archery", ]
+
+#Manual country renaming
+manual_corrections <- list(
+  "USA" = "United States",
+  "US" = "United States",
+  "U.S.A." = "United States",
+  "UK" = "United Kingdom",
+  "U.K." = "United Kingdom",
+  "UKG" = "United Kingdom",
+  "USSR" = "Soviet Union",
+  "U.S.S.R" = "Soviet Union",
+  "U.S. Virgin Islands" = "United States",
+  "Palestinian Territories" = "Russia",
+  "Yemen Arab Republic" = "Russia",
+  "Netherlands Antilles" = "Netherlands",
+  "American Samoa" = "United States",
+  "Bermuda" = "United Kingdom",
+  "Serbia and Montenegro" = "United States",
+  "British Virgin Islands" = "United Kingdom",
+  "Central African Republic" = "United States",
+  "Guam" = "United States",
+  "Caymen Islands" = "United Kingdom",
+  "Hong Kong SAR China" = "China",
+  "Micronesia (Federated States of)" = "United States",
+  "Taiwan" = "United States",
+  "Cook Islands" = "United States",
+  "Aruba" = "United States",
+  "Hamburg" = "United States",
+  "Unknown" = "China",
+  "Virgin Islands" = "United States",
+  "Chicago Archers" = "United States",
+  "Boston Archers" = "United States",
+  "Cincinnati Archers" = "United States",
+  "Potomac Archers" = "United States",
+  "Puerto Rico" = "United States",
+  "Unified Team" = "United States" #Countries that split from Soviet Union and became democracies
+  # Add more as needed                # Put as USA to show Democracy status
+)
+
+
+#standardize country names using countrycode package
+dataArchery <- dataArchery %>% 
+  mutate(country_std = countrycode(Team, "country.name", "country.name"))
+
+#For unconverted names, rename using manual correction
+dataArchery <- dataArchery %>%
+  mutate(country_std = ifelse(Team %in% names(manual_corrections),
+                               manual_corrections[Team],
+                               country_std))
+
+# biography data on archery athletes
+hweight <- read.csv("Olympic_Athlete_Biography.csv")
+
+#standardize country names using countrycode package
+hweight <- hweight %>% 
+  mutate(country_std = countrycode(country, "country.name", "country.name"))
+
+
+#For unconverted names, rename using manual correction
+hweight <- hweight %>%
+  mutate(country_std = ifelse(country %in% names(manual_corrections),
+                               manual_corrections[country],
+                               country_std))
+
+#Rename "name" column to "Name" to merge with dataArchery
+hweight <- hweight %>% rename("Name" = "name")
+
+# merged data (all archery athletes and biography data) first data set
+archery_and_biography <- dataArchery %>% left_join(hweight, by = "Name", 
+                                                   relationship = "many-to-many")
+```
+
+```{r Standardize country names of all data, include = FALSE}
+#standardize country names using countrycode package for main dataset
+data <- data %>% 
+  mutate(country_std = countrycode(Team, "country.name", "country.name"))
+
+#For unconverted names, rename using manual correction
+data <- data %>%
+  mutate(country_std = ifelse(Team %in% names(manual_corrections),
+                               manual_corrections[Team],
+                               country_std))
+```
+
+```{r 2020 Olympics Data, include = FALSE}
+data2020 <- data %>% 
+  rename(country = country_std) %>% 
+  filter(grepl("^2020", Games))
+
+#standardize country names using countrycode package
+data2020 <- data2020 %>% 
+  mutate(country_std = countrycode(Team, "country.name", "country.name"))
+
+#For unconverted names, rename using manual correction
+data2020 <- data2020 %>%
+  mutate(country_std = ifelse(Team %in% names(manual_corrections),
+                               manual_corrections[Team],
+                               country_std))
+
+```
+
+```{r Archery medal winners, include = FALSE}
+#all archery athletes who won a medal
+dataArcheryMedals <- dataArchery[dataArchery["Medal"] == "Gold" | dataArchery["Medal"] == "Silver" | dataArchery["Medal"] == "Bronze", ]
+
+archery_bio_medals <-  archery_and_biography[archery_and_biography["Medal"] == "Gold" | archery_and_biography["Medal"] == "Silver" | archery_and_biography["Medal"] == "Bronze", ]
+```
+
+```{r Extra cleaning of joined archery and biography datasets, include = FALSE}
+archery_and_biography <- archery_and_biography %>%
+  # Convert empty strings to 0 in Medal column
+  mutate(Medal = ifelse(Medal == "", 0, Medal)) %>%
+  # Create binary medal indicator (1=medal, 0=no medal)
+  mutate(Medal_Won = ifelse(Medal == 0, 0, 1)) %>%
+  # Remove rows with missing heights if needed
+  filter(!is.na(height))
+
+#Compute quartiles for heights for athletes
+archery_bio_medals_quart <- archery_and_biography %>%
+  mutate(Height_Quartile = ntile(height, 4) %>% 
+           factor(labels = c("Q1", "Q2", "Q3", "Q4")))
+
+# Check distribution
+archery_bio_medals_quart %>%
+  count(Height_Quartile)
+```
+
+```{r Country Government cleaning, include = FALSE} 
+library(lubridate)
+
+#Data set of regimes and government leaders by country
+reign_data <- read.csv("REIGN_2021_6.csv")
+
+#Make a standardized date column
+reign_data <- reign_data %>%
+  mutate(date = make_date(year = year, month = month, day = 1))
+
+#standardize country names using countrycode package
+reign_data <- reign_data %>% 
+  mutate(country_std = countrycode(country, "country.name", "country.name"))
+
+#For unconverted names, rename using manual correction
+reign_data <- reign_data %>%
+  mutate(country_std = ifelse(country %in% names(manual_corrections),
+                               manual_corrections[country],
+                               country_std))
+#Factor columns in the data set
+reign_data <- reign_data %>%
+  mutate(
+    country = as.factor(country),
+    leader = as.factor(leader),
+    government = as.factor(government),
+    elected = as.factor(elected),
+    male = as.factor(male),
+    militarycareer = as.factor(militarycareer),
+    gov_democracy = as.factor(gov_democracy)
+  )
+
+# Get the most recent democracy status for each country
+democracy_status <- reign_data %>%
+  group_by(country_std) %>%
+  arrange(desc(date)) %>%  # Sort by most recent date first
+  slice(1) %>%             # Take the most recent record for each country
+  ungroup() %>%
+  select(country = country_std, is_democracy = gov_democracy) %>%
+  mutate(
+    democracy_status = ifelse(is_democracy == 1, "Democratic", "Non-Democratic"),
+    democracy_status = factor(democracy_status, levels = c("Democratic", "Non-Democratic"))
+  )
+
+# All athletes from 2020 and their countries' democracy status
+twentytwenty_athletes_with_demo <- data2020 %>% 
+  left_join(democracy_status %>% select(country, democracy_status), by = c("country_std" = "country"))
+
+#Removes NA democracy status from countries that were not sampled under the reign data set
+twentytwenty_athletes_with_demo <- twentytwenty_athletes_with_demo %>%
+  filter(!is.na(democracy_status))
+
+#Select only athletes that received a medal
+athletes_with_democracy_medals <- twentytwenty_athletes_with_demo[twentytwenty_athletes_with_demo["Medal"] == "Gold" | twentytwenty_athletes_with_demo["Medal"] == "Silver" |twentytwenty_athletes_with_demo["Medal"] == "Bronze", ]
+
+#Factor level medals in ascending order
+athletes_with_democracy_medals$Medal <- factor(athletes_with_democracy_medals$Medal, 
+                                               levels = c("Bronze", "Silver", "Gold"))
+
+#Calculate the percentages of athletes between democratic and non-democratic countries
+percent_data <- twentytwenty_athletes_with_demo %>%
+  count(democracy_status) %>%
+  mutate(percentage = n / sum(n) * 100)
+
+#Calculate total medals by country in 2020
+medals_by_country <- athletes_with_democracy_medals %>% 
+  filter(!is.na(Medal)) %>% 
+  group_by(country) %>% 
+  summarise(total_medals = n(), .groups = "drop")
+
+#Join medals by country with democracy status
+country_medals <- medals_by_country %>% 
+  inner_join(democracy_status, by = "country")
+#Calculate the percentage share of each country medal count compared to regime total
+medal_share_by_country <- country_medals %>% 
+  group_by(democracy_status) %>% 
+  mutate(
+    regime_total_medals = sum(total_medals),
+    normalized_medal_share = total_medals / regime_total_medals
+  ) %>% 
+  ungroup()
+```
+
+```{r Total medals by democracy status, include = FALSE}
+ggplot(data = athletes_with_democracy_medals, mapping = aes(x = democracy_status, fill = Medal)) +
+  geom_bar(position = "dodge") +
+   scale_fill_manual(values = c("Bronze" = "#CD7F32", 
+                              "Silver" = "#C0C0C0",  
+                             "Gold" = "#FFD700")) + 
+  labs(x = "", y = "Count", title = "Total Olympic Medals (2020): Democratic vs. Non-Democratic Nations") +
+  theme_minimal()
+```
+
+```{r Medal share by countries in their regime, include = FALSE} 
+# Subset the medal shares by regime
+demo_shares <- medal_share_by_country$normalized_medal_share[medal_share_by_country$democracy_status == "Democratic"]
+
+non_demo_shares <- medal_share_by_country$normalized_medal_share[medal_share_by_country$democracy_status == "Non-Democratic"]
+
+# Run the Kolmogorov-Smirnov test
+ks_test_result <- ks.test(demo_shares, non_demo_shares)
+
+ecdf_data <- medal_share_by_country %>%
+  mutate(democracy_status = factor(democracy_status))
+
+ggplot(ecdf_data, aes(x = normalized_medal_share, color = democracy_status)) +
+  stat_ecdf(geom = "step", size = 1) +
+  scale_x_log10(
+  breaks = c(0.001, 0.01, 0.1, 1),
+  labels = c("0.1%", "1%", "10%", "100%")) +
+  labs(
+    title = "ECDF of Normalized Medal Share by Regime (2020 Olympics)",
+    x = "Percentage Share of Total Regime's Medals (log scale)",
+    y = "Percent of Countries (Cumulative)",
+    color = "Regime Type"
+  ) +
+  annotate(
+    "text",
+    x = 0.02, y = 0.1,
+    label = paste0("KS test D = ", round(ks_test_result$statistic, 3),
+                   "\np-value = ", format.pval(ks_test_result$p.value, digits = 2, eps = .001)),
+    hjust = 0,
+    size = 4,
+    color = "black"
+  ) +
+  theme_minimal()
+```
+
+```{r Total participation by democracy status, include = FALSE}
+ggplot(percent_data, aes(x = "", y = percentage, fill = democracy_status)) +
+  geom_col(width = 1) +
+  coord_polar("y") +
+  geom_text(aes(label = paste0(round(percentage), "%")), 
+            position = position_stack(vjust = 0.45)) +
+  labs(title = "Total Olympic Athletes (2020)", 
+       fill = "") +
+  scale_fill_brewer(direction = -1) +
+  theme_void() +
+  theme(plot.title = element_text(hjust = 0.6, size = 14, face = "bold"))
+```
+
+```{r South Korea Samples, include = FALSE}
+SKorea_samples <- data %>% 
+  filter(substr(country_std, 1, 11) == "South Korea")
+
+SKorea_yearly <- SKorea_samples %>% 
+  mutate(year_clean = substr(Year, 1, 4)) %>% #take first 4 characters for year
+  mutate(year_clean = as.integer(year_clean)) %>%  #convert to number
+  filter(year_clean >= 1900, year_clean <= 2020) %>%
+  count(year_clean, name = "count") %>%
+  arrange(year_clean)
+```
+
+```{r Total South Korean athletes across years, include = FALSE }
+ggplot(data = SKorea_yearly, mapping = aes(x = year_clean, y = count)) +
+  geom_density(stat = "identity") +
+   labs(title = "Total South Korean Olympic Athletes (1948 - 2020)", 
+       x = "Olympic Year", y = "Total Athletes") +
+  scale_x_continuous(n.breaks = 20) +
+  theme_minimal()
+```
+
+```{r Height and performance of athletes}
+ggplot(archery_bio_medals_quart, aes(x = height, fill = factor(Medal_Won))) +
+  geom_density(alpha = 0.5, color = NA) +
+  scale_fill_manual(
+     values = c("#0072B2", "#D55E00"),
+    labels = c("No Medal", "Won Medal")
+  ) +
+  labs(
+    title = "Height Distribution by Medal Status of Archery Athletes (1972 - 2016)",
+    subtitle = "Density curves show height patterns for medalists vs non-medalists",
+    x = "Height (cm)",
+    y = "Proportion of Athletes",
+    fill = ""
+  ) +
+  theme_minimal()
+
+
+```
+
