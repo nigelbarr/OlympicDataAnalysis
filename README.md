@@ -12,35 +12,39 @@ This project investigates how GDP, education, government type, and athlete physi
 
 <h2>Environments Used </h2>
 
-- <b>Windows 11</b> 
+- <b>Windows 11</b>
+
+<h2>Data sets used:</h2>
+
+  - [126 Years of Historical Olympic Dataset](https://www.kaggle.com/datasets/muhammadehsan02/126-years-of-historical-olympic-dataset?resource=download)
+  - [Olympics 124 years Dataset(till 2020)](https://www.kaggle.com/datasets/nitishsharma01/olympics-124-years-datasettill-2020)
+  - [Government types of the world - REIGN dataset](https://www.kaggle.com/datasets/janzasadny/rulers-elections-and-irregular-governance)
+  - [Country Statistics - UNData](https://www.kaggle.com/datasets/sudalairajkumar/undata-country-profiles)
 
 <h2>Analytical findings and plots:</h2>
 
 <p align="center">
-Initialize shelves and shopping cart stack for the market object: <br/>
-<img src="https://i.imgur.com/VZKpKYt.png" height="80%" width="80%"/>
+<img src="https://i.imgur.com/aKLupZ0.png" height="80%" width="80%"/>
 <br />
 <br />
-Adds pricing catagories for different retail items:  <br/>
-<img src="https://i.imgur.com/hhuoqGL.png" height="80%" width="80%"/>
+
+<img src="https://i.imgur.com/9px4nP9.png" height="80%" width="80%"/>
 <br />
 <br />
-Add retail items: <br/>
-<img src="https://i.imgur.com/Z2oeGyh.png" height="80%" width="80%"/>
+
+<img src="https://i.imgur.com/WS4jju8.png" height="80%" width="80%"/>
 <br />
 <br />
-Initialize counter and employee objects and simulate employee doing inventory tasks:  <br/>
-<img src="https://i.imgur.com/l3p2BWd.png" height="80%" width="80%"/>
+
+<img src="https://i.imgur.com/PC65eAA.png" height="80%" width="80%"/>
 <br />
 <br />
-Simulate customers shopping:  <br/>
-<img src="https://i.imgur.com/TDrtcf6.png" height="80%" width="80%"/>
+
+<img src="https://i.imgur.com/X6nbMlg.png" height="80%" width="80%"/>
 <br />
 <br />
-After customer finishes shopping, simulate cashier checkout tasks:  <br/>
-<img src="https://i.imgur.com/7VjwM0P.png" height="80%" width="80%"/>
-<br />
-<br />
+
+
 
 
 
