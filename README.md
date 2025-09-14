@@ -22,24 +22,38 @@ This project investigates how GDP, education, government type, and athlete physi
   - [Country Statistics - UNData](https://www.kaggle.com/datasets/sudalairajkumar/undata-country-profiles)
 
 <h2>Analytical findings and plots:</h2>
+<p align="center">
+Medal Distribution in Democratic vs. Non-Democratic Countries (Higher is more evenly distributed)
 
 <p align="center">
 <img src="https://i.imgur.com/aKLupZ0.png" height="80%" width="80%"/>
 <br />
 <br />
 
+<p align="center">
+Heights of Medal Winning/Non-Winning Archery Athletes
+  
 <img src="https://i.imgur.com/9px4nP9.png" height="80%" width="80%"/>
 <br />
 <br />
 
+<p align="center">
+Total Medals Won in Democratic vs. Non-Democratic Countries
+  
 <img src="https://i.imgur.com/WS4jju8.png" height="80%" width="80%"/>
 <br />
 <br />
 
+<p align="center">
+Total South Korean Olympic Athletes Throughout the Years
+  
 <img src="https://i.imgur.com/PC65eAA.png" height="80%" width="80%"/>
 <br />
 <br />
 
+<p align="center">
+Total Olympic Athletes in Democratic vs. Non-Democratic Countries
+  
 <img src="https://i.imgur.com/X6nbMlg.png" height="80%" width="80%"/>
 <br />
 <br />
